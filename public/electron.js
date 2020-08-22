@@ -1,12 +1,13 @@
 const { app, BrowserWindow } = require("electron");
 const path = require("path");
 const isDev = require("electron-is-dev");
+const { WINDOW_DIMENSIONS } = require("../src/features/app/constants");
 
 function createWindow() {
   // Create the browser window.
   const win = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: WINDOW_DIMENSIONS.WIDTH,
+    height: WINDOW_DIMENSIONS.height,
     webPreferences: {
       nodeIntegration: true,
     },
