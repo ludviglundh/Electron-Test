@@ -1,4 +1,4 @@
-export const playlists = [
+const playlists = [
   {
     name: '<Focus />',
   },
@@ -21,3 +21,5 @@ export const playlists = [
     name: 'this is Ramstein',
   },
 ]
+
+export default playlists

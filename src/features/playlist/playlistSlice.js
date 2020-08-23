@@ -1,22 +1,23 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice } from '@reduxjs/toolkit'
 
 const initialState = {
-  seletedPlaylist: null
-};
+  selectedPlaylist: null,
+}
 
 function setPlaylist(state, action) {
-  const selectedTheme = action.payload;
-  state.selectedTheme = selectedTheme;
+  console.log('hej')
+  const selectedPlaylist = action.payload
+  state.selectedPlaylist = selectedPlaylist
 }
 
 const playlistSlice = createSlice({
-  name: "playlist",
+  name: 'playlist',
   initialState,
   reducers: {
-    changePlaylist: setPlaylist,
+    changeSelectedPlaylist: setPlaylist,
   },
-});
+})
 
-export const { changePlaylist } = playlistSlice.actions;
+export const { changeSelectedPlaylist } = playlistSlice.actions
 
-export default playlistSlice.reducer;
+export default playlistSlice.reducer

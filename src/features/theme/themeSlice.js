@@ -1,24 +1,24 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice } from '@reduxjs/toolkit'
 
-import { THEME_NAMES } from "../app/constants";
+import { THEME_NAMES } from '../app/constants'
 
 const initialState = {
   selectedTheme: THEME_NAMES.dark,
-};
+}
 
 function changeTheme(state, action) {
-  const selectedTheme = action.payload;
-  state.selectedTheme = selectedTheme;
+  const selectedTheme = action.payload
+  state.selectedTheme = selectedTheme
 }
 
 const themeSlice = createSlice({
-  name: "theme",
+  name: 'theme',
   initialState,
   reducers: {
     changeSelectedTheme: changeTheme,
   },
-});
+})
 
-export const { changeSelectedTheme } = themeSlice.actions;
+export const { changeSelectedTheme } = themeSlice.actions
 
-export default themeSlice.reducer;
+export default themeSlice.reducer
