@@ -1,12 +1,12 @@
 ## Quickify
 
-# Build with react and electron
+Build with react and electron
 
-# What does quickify do?
+### What does quickify do?
 
 The idea is to quickly add current playing song to a chosen playlist, with a desktop command or an external button if you will
 
-# TODO
+### TODO
 
 [] Setup auth flow
 [] Refresh user token
