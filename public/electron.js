@@ -45,12 +45,12 @@ function CreateTray() {
 function createWindow() {
   // Create the browser window.
   window = new BrowserWindow({
-    width: 800,
-    height: 800,
+    width: 300,
+    height: 510,
     webPreferences: {
       nodeIntegration: true,
     },
-    // show: false,
+    show: false,
     frame: false,
     fullscreenable: false,
     resizable: false,
@@ -63,5 +63,4 @@ function createWindow() {
       : `file://${join(__dirname, '../build/index.html')}`,
   )
 }
-
 app.whenReady().then(CreateTray).then(createWindow)
