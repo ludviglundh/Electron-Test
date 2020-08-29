@@ -4,8 +4,11 @@ import { useDispatch, useSelector } from 'react-redux'
 import styled from 'styled-components'
 import { COLORS } from '../utils/colorUtils'
 import { setAccessToken, setIsAuthenticated } from '../features/auth/authSlice'
-// import PlaylistPicker from '../components/Dropdown'
-// import changeSelectedPlaylist from '../features/playlist/playlistSlice'
+import {
+  setActivePlaylist,
+  saveUserPlaylists,
+} from '../features/playlist/playlistSlice'
+import PlaylistPicker from '../components/Dropdown'
 
 import hash from '../services/hash'
 import { createURLParams } from '../utils/apiUtils'
@@ -45,6 +48,7 @@ export default function Index() {
   const BASE_URL = 'https://api.spotify.com/v1'
   const dispatch = useDispatch()
   const auth = useSelector((state) => state.auth)
+  const playlists = useSelector((state) => state.playlist)
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   async function getCurrentPlayingSong() {
@@ -78,15 +82,49 @@ export default function Index() {
     }
   }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  function getMyData() {
+    if (playlists.savedPlaylists.length > 0) return
+    const requestData = {
+      url: `${BASE_URL}/me/playlists`,
+    }
+
+    try {
+      fetch(requestData.url, {
+        method: 'get',
+        headers: {
+          Authorization: 'Bearer ' + auth.access_token,
+        },
+      })
+        .then((response) => {
+          if (response.ok) {
+            return response.json()
+          }
+        })
+        .then((result) => {
+          console.log('mydata result', result)
+          if (result?.items) {
+            dispatch(saveUserPlaylists(result.items))
+          }
+        })
+    } catch (err) {
+      console.log('err', err)
+    }
+  }
+
   useEffect(() => {
     const token = hash?.access_token
     if (token) {
+      setShowLogin(false)
       dispatch(setAccessToken(token))
       dispatch(setIsAuthenticated(true))
-      setShowLogin(false)
+
+      getCurrentPlayingSong()
+      getMyData()
     }
 
     function Tick() {
+      console.log('playlists', playlists)
       if (auth.access_token) {
         getCurrentPlayingSong()
         setIsAuthenticated(!!token)
@@ -97,11 +135,11 @@ export default function Index() {
     return () => {
       clearInterval(interval.current)
     }
-  }, [auth.access_token, dispatch, getCurrentPlayingSong])
+  }, [auth.access_token, dispatch, getCurrentPlayingSong, playlists])
 
   function handleAddCurentSongToPlaylist() {
-    const playlistId = '5LhDuj8sHVyR6H2k2RESCv'
-
+    if (!playlists.selectedPlaylist) return
+    const playlistId = playlists.selectedPlaylist
     const requestData = {
       url: `${BASE_URL}/playlists/${playlistId}/tracks`,
     }
@@ -120,33 +158,16 @@ export default function Index() {
           }
         })
         .then((result) => {
-          console.log('result', result)
+          console.log('add track to playlist result', result)
         })
     } catch (err) {
       console.log('err', err)
     }
   }
 
-  function getMyData() {
-    const requestData = {
-      url: `${BASE_URL}/me/playlists`,
-    }
-
+  function handlePlaylistPicked(playlist) {
     try {
-      fetch(requestData.url, {
-        method: 'get',
-        headers: {
-          Authorization: 'Bearer ' + auth.access_token,
-        },
-      })
-        .then((response) => {
-          if (response.ok) {
-            return response.json()
-          }
-        })
-        .then((result) => {
-          console.log('result', result)
-        })
+      dispatch(setActivePlaylist(playlist))
     } catch (err) {
       console.log('err', err)
     }
@@ -192,9 +213,15 @@ export default function Index() {
               Add current song to your chosen playlist
             </button>
           </TitleContainer>
-          <TitleContainer>
-            <button onClick={getMyData}>GetMyData</button>
-          </TitleContainer>
+          <PickerContainer>
+            <PlaylistPicker
+              items={playlists.savedPlaylists}
+              onChange={({ uri }) => {
+                handlePlaylistPicked(uri)
+              }}
+              placeholder="Choose a playlist"
+            />
+          </PickerContainer>
         </>
       )}
       {sessionError && (
@@ -202,13 +229,6 @@ export default function Index() {
           <text>Something went wrong</text>
         </TitleContainer>
       )}
-      {/* <PickerContainer>
-        <PlaylistPicker
-          items={playlists}§
-          onChange={handlePlaylistSelected}
-          placeholder="Choose a playlist"
-        />
-      </PickerContainer> */}
     </Container>
   )
 }
