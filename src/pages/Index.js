@@ -1,9 +1,14 @@
-import React, { useEffect, useState } from 'react'
+/* eslint-disable react/button-has-type */
+import React, { useEffect, useState, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import styled from 'styled-components'
 import { COLORS } from '../utils/colorUtils'
-import PlaylistPicker from '../components/Dropdown'
-import changeSelectedPlaylist from '../features/playlist/playlistSlice'
+import { setAccessToken, setIsAuthenticated } from '../features/auth/authSlice'
+// import PlaylistPicker from '../components/Dropdown'
+// import changeSelectedPlaylist from '../features/playlist/playlistSlice'
+
+import hash from '../services/hash'
+import { createURLParams } from '../utils/apiUtils'
 
 const Container = styled.div`
   background-color: ${COLORS.spotify};
@@ -31,55 +36,31 @@ const PickerContainer = styled.div`
 
 export default function Index() {
   const [sessionError, setSessionError] = useState(false)
-  const [hashParams, setHashParams] = useState(null)
-  const [data, setData] = useState(null)
+  const [showLogin, setShowLogin] = useState(true)
   const [currentTrack, setCurrentTrack] = useState(null)
   const [currentTrackUri, setCurrentTrackUri] = useState(null)
+
+  const interval = useRef(null)
+
   const BASE_URL = 'https://api.spotify.com/v1'
-
   const dispatch = useDispatch()
-  function handlePlaylistSelected(playlist) {
-    dispatch(changeSelectedPlaylist(playlist.label))
-  }
+  const auth = useSelector((state) => state.auth)
 
-  function makeRequest(requestData, type) {
-    try {
-      let data
-      fetch(requestData.url, {
-        method: type,
-        headers: {
-          Authorization: 'Bearer ' + hashParams.access_token,
-        },
-      })
-        .then((res) => res.json())
-        .then((result) => {
-          console.log('result', result)
-          setData(data)
-        })
-    } catch (err) {
-      console.log('err', err)
-    }
-  }
-
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   async function getCurrentPlayingSong() {
     const requestData = {
       url: `${BASE_URL}/me/player/currently-playing`,
-    }
-    console.log('hashParams', hashParams)
-    if (!hashParams?.access_token) {
-      setSessionError(true)
     }
 
     try {
       fetch(requestData.url, {
         method: 'get',
         headers: {
-          Authorization: 'Bearer ' + hashParams.access_token,
+          Authorization: 'Bearer ' + auth.access_token,
         },
       })
         .then((res) => res.json())
         .then((result) => {
-          console.log('result', result)
           setCurrentTrack(
             `${result?.item?.name} - ${result?.item?.artists[0]?.name}`,
           )
@@ -91,6 +72,27 @@ export default function Index() {
     }
   }
 
+  useEffect(() => {
+    const token = hash?.access_token
+    if (token) {
+      dispatch(setAccessToken(token))
+      dispatch(setIsAuthenticated(true))
+      setShowLogin(false)
+    }
+
+    function Tick() {
+      if (auth.access_token) {
+        getCurrentPlayingSong()
+        setIsAuthenticated(!!token)
+      }
+    }
+    interval.current = setInterval(() => Tick(), 5000)
+
+    return () => {
+      clearInterval(interval.current)
+    }
+  }, [auth.access_token, dispatch, getCurrentPlayingSong])
+
   function handleAddCurentSongToPlaylist() {
     const playlistId = '5LhDuj8sHVyR6H2k2RESCv'
 
@@ -98,20 +100,11 @@ export default function Index() {
       url: `${BASE_URL}/playlists/${playlistId}/tracks`,
     }
 
-    const body = {
-      uris: [
-        {
-          currentTrackUri,
-        },
-      ],
-    }
-
-    console.log('body', body)
     try {
       fetch(requestData.url + `?uris=${currentTrackUri}`, {
         method: 'POST',
         headers: {
-          Authorization: 'Bearer ' + hashParams.access_token,
+          Authorization: 'Bearer ' + auth.access_token,
         },
         'Content-Type': 'application/json',
       })
@@ -133,7 +126,7 @@ export default function Index() {
       fetch(requestData.url, {
         method: 'get',
         headers: {
-          Authorization: 'Bearer ' + hashParams.access_token,
+          Authorization: `Bearer ${auth.access_token}`,
         },
       })
         .then((res) => res.json())
@@ -145,51 +138,32 @@ export default function Index() {
     }
   }
 
-  const statex = useSelector((state) => state)
+  const scope =
+    'playlist-modify-public playlist-modify-private user-read-private user-read-email user-read-currently-playing user-read-playback-state'
 
-  useEffect(() => {
-    console.log('state', statex)
-  }, [statex])
+  const queryParams = {
+    client_id: '54232bc5456443da81ac5918d86338b0',
+    response_type: 'token',
+    redirect_uri: 'http://localhost:3000/callback',
+    scope,
+    show_dialog: true,
+  }
 
-  useEffect(() => {
-    function getHashParams() {
-      let hashParams = {}
-      let e,
-        r = /([^&;=]+)=?([^&;]*)/g,
-        q = window.location.hash.substring(1)
-      e = r.exec(q)
-      while (e) {
-        hashParams[e[1]] = decodeURIComponent(e[2])
-        e = r.exec(q)
-      }
-      setHashParams(hashParams)
-    }
-
-    getHashParams()
-  }, [])
-
-  useEffect(() => {
-    console.log('hashParams', hashParams)
-    if (!hashParams?.access_token) {
-      setSessionError(true)
-    }
-    setSessionError(false)
-    if (sessionError) return
-
-    getCurrentPlayingSong()
-  }, [getCurrentPlayingSong, hashParams, sessionError])
+  const url = `https://accounts.spotify.com/authorize${createURLParams(
+    queryParams,
+  )}`
 
   return (
     <Container>
       <TitleContainer>
         <Title>Quickify</Title>
       </TitleContainer>
-      {sessionError && (
+      {showLogin && (
         <TitleContainer>
-          <a href="http://localhost:8888">Login to Spotify</a>
+          <a href={url}>Login to Spotify</a>
         </TitleContainer>
       )}
-      {!sessionError && (
+      {!showLogin && (
         <>
           <TitleContainer>
             <button onClick={getCurrentPlayingSong}>
@@ -208,6 +182,11 @@ export default function Index() {
             <button onClick={getMyData}>GetMyData</button>
           </TitleContainer>
         </>
+      )}
+      {sessionError && (
+        <TitleContainer>
+          <text>Something went wrong</text>
+        </TitleContainer>
       )}
       {/* <PickerContainer>
         <PlaylistPicker
