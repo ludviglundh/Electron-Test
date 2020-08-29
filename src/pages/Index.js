@@ -135,7 +135,7 @@ export default function Index() {
     return () => {
       clearInterval(interval.current)
     }
-  }, [auth.access_token, dispatch, getCurrentPlayingSong, playlists])
+  }, [auth.access_token, dispatch, getCurrentPlayingSong, getMyData, playlists])
 
   function handleAddCurentSongToPlaylist() {
     if (!playlists.selectedPlaylist) return
