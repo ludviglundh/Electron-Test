@@ -5,9 +5,7 @@ export default function Apploader({ children }) {
   const [isLoading, setLoading] = useState(true)
 
   useEffect(() => {
-    setTimeout(() => {
-      setLoading(false)
-    }, 500)
+    setLoading(false)
   }, [])
 
   if (isLoading) {
