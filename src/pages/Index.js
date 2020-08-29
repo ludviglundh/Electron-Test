@@ -59,12 +59,18 @@ export default function Index() {
           Authorization: 'Bearer ' + auth.access_token,
         },
       })
-        .then((res) => res.json())
+        .then((response) => {
+          if (response.ok) {
+            return response.json()
+          }
+        })
         .then((result) => {
-          setCurrentTrack(
-            `${result?.item?.name} - ${result?.item?.artists[0]?.name}`,
-          )
-          setCurrentTrackUri(result?.item.uri)
+          if (result) {
+            setCurrentTrack(
+              `${result?.item?.name} - ${result?.item?.artists[0]?.name}`,
+            )
+            setCurrentTrackUri(result?.item.uri)
+          }
         })
     } catch (err) {
       console.log('err', err)
@@ -108,7 +114,11 @@ export default function Index() {
         },
         'Content-Type': 'application/json',
       })
-        .then((res) => res.json())
+        .then((response) => {
+          if (response.ok) {
+            return response.json()
+          }
+        })
         .then((result) => {
           console.log('result', result)
         })
@@ -126,10 +136,14 @@ export default function Index() {
       fetch(requestData.url, {
         method: 'get',
         headers: {
-          Authorization: `Bearer ${auth.access_token}`,
+          Authorization: 'Bearer ' + auth.access_token,
         },
       })
-        .then((res) => res.json())
+        .then((response) => {
+          if (response.ok) {
+            return response.json()
+          }
+        })
         .then((result) => {
           console.log('result', result)
         })
