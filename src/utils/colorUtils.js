@@ -6,7 +6,10 @@ export const COLORS = {
 }
 
 export const LIGHT_THEME = {
-  background: COLORS.white,
+  background: {
+    primary: COLORS.white,
+    secondary: COLORS.spotify,
+  },
   text: {
     primary: COLORS.spotify,
     secondary: COLORS.black,
@@ -18,7 +21,10 @@ export const LIGHT_THEME = {
 }
 
 export const DARK_THEME = {
-  background: COLORS.nero,
+  background: {
+    primary: COLORS.nero,
+    secondary: COLORS.spotify,
+  },
   text: {
     primary: COLORS.spotify,
     secondary: COLORS.white,
