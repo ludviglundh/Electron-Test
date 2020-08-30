@@ -63,4 +63,6 @@ function createWindow() {
 }
 app.whenReady().then(CreateTray).then(createWindow)
 
-app.on('browser-window-blur', () => window.hide())
+if (!isDev) {
+  app.on('browser-window-blur', () => window.hide())
+}
