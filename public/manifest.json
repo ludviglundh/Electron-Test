@@ -1,6 +1,6 @@
 {
-  "short_name": "Quickify",
-  "name": "Create React App Sample",
+  "short_name": "Quick Add",
+  "name": "Quick Add for Spotify",
   "start_url": ".",
   "display": "standalone",
   "theme_color": "#000000",

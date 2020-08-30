@@ -1,5 +1,5 @@
 {
-  "name": "electrontest",
+  "name": "quickaddforspotify",
   "version": "0.1.0",
   "main": "public/electron.js",
   "scripts": {

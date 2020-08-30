@@ -1,10 +1,10 @@
-## Quickify
+## Quick Add for Spotify
 
 Build with react and electron
 
-### What does quickify do?
+### What does it do?
 
-Quickify is an macOS Tray Application built with React using Electron.
+Quick Add for Spotify is an macOS Tray Application built with React using Electron.
 The idea is to quickly add your current playing track to a playlist of your choice
 
 ### TODO
