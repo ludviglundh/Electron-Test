@@ -10,13 +10,11 @@ function getWindowPosition() {
   const windowBounds = window.getBounds()
   const trayBounds = tray.getBounds()
 
-  // Center window horizontally below the tray icon
   const x = Math.round(
     trayBounds.x + trayBounds.width / 2 - windowBounds.width / 2,
   )
 
-  // Position window 4 pixels vertically below the tray icon
-  const y = Math.round(trayBounds.y + trayBounds.height + 3)
+  const y = Math.round(trayBounds.y + trayBounds.height)
 
   return { x, y }
 }
@@ -64,3 +62,5 @@ function createWindow() {
   )
 }
 app.whenReady().then(CreateTray).then(createWindow)
+
+app.on('browser-window-blur', () => window.hide())
