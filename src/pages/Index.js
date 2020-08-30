@@ -2,19 +2,19 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import styled from 'styled-components'
-import { COLORS } from '../utils/colorUtils'
 import { setAccessToken, setIsAuthenticated } from '../features/auth/authSlice'
 import {
   setActivePlaylist,
   saveUserPlaylists,
 } from '../features/playlist/playlistSlice'
 import PlaylistPicker from '../components/Dropdown'
+import { APP_NAME } from '../features/app/constants'
 
 import hash from '../services/hash'
 import { createURLParams } from '../utils/apiUtils'
 
 const Container = styled.div`
-  background-color: ${COLORS.spotify};
+  background-color: ${(props) => props.theme.background};
   height: 100%;
   flex-direction: column;
 `
@@ -23,6 +23,7 @@ const TitleContainer = styled.div`
   height: 10%;
   display: flex;
   justify-content: center;
+  align-self: center;
   align-items: center;
 `
 
@@ -31,10 +32,31 @@ const Title = styled.text`
   font-size: 39px;
 `
 
+const TrackName = styled.text`
+  flex-grow: 1;
+  text-align: center;
+  margin-top: 20px;
+  color: ${(props) => props.theme.text.secondary};
+`
+
 const PickerContainer = styled.div`
   height: 100%;
   align-items: center;
   background-color: black;
+`
+
+const LoginContainer = styled.div`
+  display: flex;
+  margin-top: 20%;
+  flex-direction: column;
+  justify-content: center;
+  align-self: center;
+  align-items: center;
+`
+const Login = styled.a`
+  font-size: 20px;
+  color: ${(props) => props.theme.text.secondary};
+  text-decoration: none;
 `
 
 export default function Index() {
@@ -49,6 +71,7 @@ export default function Index() {
   const dispatch = useDispatch()
   const auth = useSelector((state) => state.auth)
   const playlists = useSelector((state) => state.playlist)
+  const state = useSelector((state) => state)
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   async function getCurrentPlayingSong() {
@@ -62,19 +85,18 @@ export default function Index() {
         headers: {
           Authorization: 'Bearer ' + auth.access_token,
         },
+        'Content-Type:': 'application/json',
       })
         .then((response) => {
-          if (response.ok) {
-            return response.json()
-          }
+          if (response.status !== 200) return null
+          return response.json()
         })
         .then((result) => {
-          if (result) {
-            setCurrentTrack(
-              `${result?.item?.name} - ${result?.item?.artists[0]?.name}`,
-            )
-            setCurrentTrackUri(result?.item.uri)
-          }
+          if (!result) return
+          setCurrentTrack(
+            `${result?.item?.name} - ${result?.item?.artists[0]?.name}`,
+          )
+          setCurrentTrackUri(result?.item.uri)
         })
     } catch (err) {
       console.log('err', err)
@@ -97,12 +119,10 @@ export default function Index() {
         },
       })
         .then((response) => {
-          if (response.ok) {
-            return response.json()
-          }
+          if (response.status !== 200) return null
+          return response.json()
         })
         .then((result) => {
-          console.log('mydata result', result)
           if (result?.items) {
             dispatch(saveUserPlaylists(result.items))
           }
@@ -111,31 +131,6 @@ export default function Index() {
       console.log('err', err)
     }
   }
-
-  useEffect(() => {
-    const token = hash?.access_token
-    if (token) {
-      setShowLogin(false)
-      dispatch(setAccessToken(token))
-      dispatch(setIsAuthenticated(true))
-
-      getCurrentPlayingSong()
-      getMyData()
-    }
-
-    function Tick() {
-      console.log('playlists', playlists)
-      if (auth.access_token) {
-        getCurrentPlayingSong()
-        setIsAuthenticated(!!token)
-      }
-    }
-    interval.current = setInterval(() => Tick(), 5000)
-
-    return () => {
-      clearInterval(interval.current)
-    }
-  }, [auth.access_token, dispatch, getCurrentPlayingSong, getMyData, playlists])
 
   function handleAddCurentSongToPlaylist() {
     if (!playlists.selectedPlaylist) return
@@ -153,9 +148,8 @@ export default function Index() {
         'Content-Type': 'application/json',
       })
         .then((response) => {
-          if (response.ok) {
-            return response.json()
-          }
+          if (response.status !== 200) return null
+          return response.json()
         })
         .then((result) => {
           console.log('add track to playlist result', result)
@@ -164,6 +158,44 @@ export default function Index() {
       console.log('err', err)
     }
   }
+
+  useEffect(() => {
+    const token = hash?.access_token
+    if (token) {
+      setShowLogin(false)
+      dispatch(setAccessToken(token))
+      dispatch(setIsAuthenticated(true))
+
+      getCurrentPlayingSong()
+      getMyData()
+      if (playlists?.savedPlaylists) {
+        if (playlists.selectedPlaylist) {
+          dispatch(setActivePlaylist(playlists?.selectedPlaylist))
+        } else {
+          dispatch(setActivePlaylist(playlists?.savedPlaylists[0]?.id))
+        }
+      }
+    }
+
+    function Tick() {
+      if (auth.access_token) {
+        getCurrentPlayingSong()
+        setIsAuthenticated(!!token)
+      }
+    }
+    interval.current = setInterval(() => Tick(), 5000)
+
+    return () => {
+      clearInterval(interval.current)
+    }
+  }, [
+    auth.access_token,
+    dispatch,
+    getCurrentPlayingSong,
+    getMyData,
+    playlists,
+    state,
+  ])
 
   function handlePlaylistPicked(playlist) {
     try {
@@ -191,33 +223,37 @@ export default function Index() {
   return (
     <Container>
       <TitleContainer>
-        <Title>Quickify</Title>
+        <Title>{APP_NAME}</Title>
       </TitleContainer>
-      {showLogin && (
-        <TitleContainer>
-          <a href={url}>Login to Spotify</a>
-        </TitleContainer>
+      {showLogin && !sessionError && (
+        <LoginContainer>
+          <Login href={url}>Login to Spotify</Login>
+        </LoginContainer>
       )}
-      {!showLogin && (
+      {!showLogin && !sessionError && (
         <>
-          <TitleContainer>
-            <button onClick={getCurrentPlayingSong}>
-              <text>Get current song</text>
-            </button>
-          </TitleContainer>
-          <TitleContainer>
-            <text>{currentTrack}</text>
-          </TitleContainer>
-          <TitleContainer>
-            <button onClick={handleAddCurentSongToPlaylist}>
-              Add current song to your chosen playlist
-            </button>
-          </TitleContainer>
+          {!currentTrack && (
+            <TitleContainer>
+              <TrackName>Play a song on spotify to continue</TrackName>
+            </TitleContainer>
+          )}
+          {currentTrack && (
+            <>
+              <TitleContainer>
+                <TrackName>{currentTrack}</TrackName>
+              </TitleContainer>
+              <TitleContainer>
+                <button onClick={handleAddCurentSongToPlaylist}>
+                  Add current song to your chosen playlist
+                </button>
+              </TitleContainer>
+            </>
+          )}
           <PickerContainer>
             <PlaylistPicker
               items={playlists.savedPlaylists}
-              onChange={({ uri }) => {
-                handlePlaylistPicked(uri)
+              onChange={({ value }) => {
+                handlePlaylistPicked(value)
               }}
               placeholder="Choose a playlist"
             />

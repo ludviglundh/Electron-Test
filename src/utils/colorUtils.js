@@ -8,13 +8,23 @@ export const COLORS = {
 export const LIGHT_THEME = {
   background: COLORS.white,
   text: {
-    primary: COLORS.black,
+    primary: COLORS.spotify,
+    secondary: COLORS.black,
+  },
+  picker: {
+    selected: COLORS.spotify,
+    unSelected: COLORS.white,
   },
 }
 
 export const DARK_THEME = {
   background: COLORS.nero,
   text: {
-    primary: COLORS.white,
+    primary: COLORS.spotify,
+    secondary: COLORS.white,
+  },
+  picker: {
+    selected: COLORS.spotify,
+    unSelected: COLORS.white,
   },
 }
