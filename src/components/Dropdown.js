@@ -1,15 +1,24 @@
 import React, { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
 import Select from 'react-select'
+import { COLORS } from '../utils/colorUtils'
 
 export default function PlaylistPicker({ items, onChange, placeholder }) {
   const [options, setOptions] = useState([])
+
+  const customStyles = {
+    option: (provided, state) => ({
+      ...provided,
+      borderBottom: `1px dotted ${COLORS.spotify}`,
+      color: state.isSelected ? COLORS.spotify : COLORS.black,
+    }),
+  }
 
   useEffect(() => {
     if (!items) return null
     const nextItems = items.map((item) => ({
       label: item.name,
-      uri: item.id,
+      value: item.id,
     }))
     setOptions(nextItems)
 
@@ -21,8 +30,7 @@ export default function PlaylistPicker({ items, onChange, placeholder }) {
       options={options}
       onChange={onChange}
       placeholder={placeholder}
-      defaultOption={options[0]?.label}
-      width="200px"
+      styles={customStyles}
     />
   )
 }
